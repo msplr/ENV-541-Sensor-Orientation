@@ -8,7 +8,7 @@ function av = allandev(pdata,pname)
    taumax = floor(length(pdata)/4); 
    tau = 1:taumax; 
     
-   [av, s, errorb, tau2] = allan2(data,tau,data.type,1);
+   [av, s, errorb, tau2] = allan2(data,tau,data.type,0);
 
 
 function [retval, s, errorb, tau] = allan2(data,tau,name,verbose)
