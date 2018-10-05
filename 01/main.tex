@@ -49,48 +49,106 @@
 
 \maketitle
 
-\section*{1 Noise realizations plot}
+\section*{1 Noise realizations plots}
 
-\begin{figure}[H]
-\centering
-\begin{subfigure}[t]{0.49\textwidth}
-\centering
-\includegraphics[width=\textwidth]{signal1}
-\end{subfigure}
-~
-\begin{subfigure}[t]{0.49\textwidth}
-\centering
-\includegraphics[width=\textwidth]{signal2}
-\end{subfigure}
-~
-\begin{subfigure}[t]{0.49\textwidth}
-\centering
-\includegraphics[width=\textwidth]{signal3}
-\end{subfigure}
-\caption{Three different realizations of White Noise (WN), Random Walk (RW) and first order Gauss-Markov (GM1) process with correlation times T=500 and T=2000.}
-\label{fig:signals}
-\end{figure}
-
-\section*{2 }
-
+% \begin{figure}[H]
+% \centering
+% \begin{subfigure}[t]{0.49\textwidth}
+% \centering
+% \includegraphics[width=\textwidth]{signal1}
+% \end{subfigure}
+% ~
+% \begin{subfigure}[t]{0.49\textwidth}
+% \centering
+% \includegraphics[width=\textwidth]{signal2}
+% \end{subfigure}
+% ~
+% \begin{subfigure}[t]{0.49\textwidth}
+% \centering
+% \includegraphics[width=\textwidth]{signal3}
+% \end{subfigure}
+% \caption{Three different realizations of White Noise (WN), Random Walk (RW) and first order Gauss-Markov (GM1) process with correlation times T=500 and T=2000.}
+% \label{fig:signals}
+% \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{ac}
-    \caption{Autocorrelation}
-    \label{fig:autocorr}
+    \includegraphics[width=0.9\textwidth]{white_noise}
+    \caption{White Noise.}
+    \label{fig:white_noise}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.5\textwidth]{psd}
-    \caption{Power-spectral-density}
-    \label{fig:autocorr}
+    \includegraphics[width=0.9\textwidth]{gm500}
+    \caption{first order Gauss-Markov process with correlation time T=500.}
+    \label{fig:gm500}
 \end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{gm2000}
+    \caption{first order Gauss-Markov process with correlation time T=2000.}
+    \label{fig:gm2000}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{random_walk}
+    \caption{Random Walk.}
+    \label{fig:random_walk}
+\end{figure}
+
+\section*{2 Analysis}
+\subsection*{2.a Autocorrelation function shape}
+\begin{description}
+    \item[White Noise] The autocorrelation is a dirac.
+    \item[1st order Gauss-Markov] Near to the center ($\tau=0$), the autocorrelation resembles an exponentail decay in $\mid\tau\mid$, which is expected. There are lobes further away from $\tau=0$ which does not correspond to the theory but can be explained by the fact that the unbiased version of \verb'xcorr()' was used.
+    \item[Random Walk] The autocorrelation should look like a Gauss-Markov with quasi-infinite correlation time (exponential decay in $\tau$), which it does with some imagination.
+\end{description}
+Note: In both the Gauss-Markov and the random walk sequences the autocorrelation shows weird lobes in the first realization (blue).
+Maybe this is due to a badly initialized random number generator since \verb'rng(1)' is used for reproducible plots?
+
+\subsection*{2.b Empirically determined values for standard deviation and correlation length}
+
+Parameter $\beta$ is obtained by reading on the autocorrelation plot the width $T$ of the central peak at $\sigma^2/e$. $\beta = 1/T$
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+sequence nb. & 1 (blue) & 2 (red) & 3 (orange) \\ \hline
+$\sigma^2$ &  1421 & 1034 & 955.6  \\
+$\sigma$ &  37.67 & 32.16 & 30.91  \\
+$T$ & 6662 & 3282 & 1838
+\end{tabular}
+\caption{GMP $T=2000$}
+\label{tab:gmp2000}
+\end{table}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+sequence nb. & 1 (blue) & 2 (red) & 3 (orange) \\ \hline
+$\sigma^2$ &  285.1 & 274.6 & 258.8  \\
+$\sigma$ &  16.88 & 16.57 & 16.09  \\
+$T$ & 1136 & 1042 & 942
+\end{tabular}
+\caption{GMP $T=500$}
+\label{tab:gmp500}
+\end{table}
+
+Tables \ref{tab:gmp500} and \ref{tab:gmp2000} show the measured values for $\sigma$ and $T$.
+The values for the correlation length $T$ are off by up to a factor of 3. The reason for the deviation is unclear.
+
+\subsection*{2.c}
+The correlation time $T$ characterizes best how close the signal is to white noise.
+The smaller $T$, the closer to white noise, the bigger $T$, the closer to a random walk.
+
+\subsection*{2.d}
+
 
 \newpage
 \section*{Code}
 \lstinputlisting{../lab1.m}
-
 
 \end{document}

@@ -5,80 +5,25 @@ wn = randn(200000, 3);
 rw = cumsum(wn);
 % Gauss-Markov process (GM)
 dt = 1;
-beta = 1/2000;
-gm500 = GMP(wn, dt, beta);
 beta = 1/500;
+gm500 = GMP(wn, dt, beta);
+beta = 1/2000;
 gm2000 = GMP(wn, dt, beta);
 
 %% Export data
 dlmwrite('01_white_noise.txt',wn,'precision','%.8f')
 dlmwrite('01_random_walk.txt',rw,'precision','%.8f')
-dlmwrite('01_gm500.txt',[rw, gm500, gm2000],'precision','%.8f')
-dlmwrite('01_gm500.txt',[rw, gm500, gm2000],'precision','%.8f')
+dlmwrite('01_gm500.txt',gm500,'precision','%.8f')
+dlmwrite('01_gm2000.txt',gm2000,'precision','%.8f')
 
 %% Plots
 set(groot,'DefaultAxesFontSize',17)
 set(groot,'DefaultLineLineWidth',2)
 
-i = 1; % examine realization 1
-figure; hold on
-plot(wn(:,i))
-plot(rw(:,i))
-plot(gm500(:,i))    
-plot(gm2000(:,i))
-legend('WN','RW','GM1, T=500','GM1, T=2000')
-xlabel('sample number []')
-ylabel('signal value []')
-
-%% Autocorrelation
-ac_wn = xcorr(wn(:,i), 'unbiased');
-ac_rw = xcorr(rw(:,i), 'unbiased');
-ac_gm500 = xcorr(gm500(:,i), 'unbiased');
-ac_gm2000 = xcorr(gm2000(:,i), 'unbiased');
-figure
-subplot(2,2,1);
-plot(ac_wn)
-title('White Noise')
-xlabel('\tau [s]')
-ylabel('\phi_{xx}(\tau)')
-subplot(2,2,2);
-plot(ac_rw)
-title('Random Walk')
-xlabel('\tau [s]')
-ylabel('\phi_{xx}(\tau)')
-subplot(2,2,3);
-plot(ac_gm500)
-title('GM1, T=500')
-xlabel('\tau [s]')
-ylabel('\phi_{xx}(\tau)')
-subplot(2,2,4);
-plot(ac_gm2000)
-title('GM1, T=2000')
-xlabel('\tau [s]')
-ylabel('\phi_{xx}(\tau)')
-suptitle('Autocorrelation (AC)')
-
-%% Power Spectral Density (PSD)
-figure; hold on
-pwelch([wn(:,i),rw(:,i),gm500(:,i),gm2000(:,i)])
-title('Welch Power-spectral-density (PSD)')
-legend('WN','RW','GM1, T=500','GM1, T=2000')
-
-%% Allan Deviation
-adev_wn = allandev(wn(:,i), '');
-adev_rw = allandev(rw(:,i), '');
-adev_gm500 = allandev(gm500(:,i), '');
-adev_gm2000 = allandev(gm2000(:,i), '');
-
-figure
-loglog(adev_wn); hold on; grid on
-loglog(adev_rw)
-loglog(adev_gm500)
-loglog(adev_gm2000)
-title('Allan Deviation')
-legend('WN','RW','GM1, T=500','GM1, T=2000')
-xlabel('\tau [s]')
-ylabel('\sigma_y(\tau) [sec]')
+plot_noise_characteristics(wn, 'White Noise')
+plot_noise_characteristics(rw, 'Random Walk')
+plot_noise_characteristics(gm500, 'Gauss-Markov, T=500')
+plot_noise_characteristics(gm2000, 'Gauss-Markov, T=2000')
 
 %% functions
 function x = GMP(w, dt, beta)
@@ -88,4 +33,35 @@ function x = GMP(w, dt, beta)
        xk = exp(-beta*dt)*xk + w(i,:);
        x(i,:) = xk;
     end
+end
+
+function [] = plot_noise_characteristics(x, name)
+    figure
+    subplot(2,2,1);
+    plot(x)
+    xlabel('sample number []')
+    ylabel('signal value []')
+    title('Time domain signal')
+
+    subplot(2,2,2);
+    tau=-length(x)+1:length(x)-1;
+    plot(tau,xcorr(x(:,1), 'unbiased')); hold on
+    plot(tau,xcorr(x(:,2), 'unbiased'))
+    plot(tau,xcorr(x(:,3), 'unbiased'))
+    title('Autocorrelation (AC)')
+    xlabel('\tau [s]')
+    ylabel('\phi_{xx}(\tau)')
+
+    subplot(2,2,3);
+    pwelch(x)
+    title('Welch Power-spectral-density (PSD)')
+
+    subplot(2,2,4);
+    loglog(allandev(x(:,1), '')); hold on; grid on
+    loglog(allandev(x(:,2), ''))
+    loglog(allandev(x(:,3), ''))
+    title('Allan Deviation')
+    xlabel('\tau [s]')
+    ylabel('\sigma_y(\tau) [sec]')
+    %suptitle(name)
 end
