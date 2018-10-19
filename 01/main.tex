@@ -118,7 +118,7 @@ Parameter $\beta$ is obtained by reading on the autocorrelation plot the width $
 \begin{tabular}{llll}
 sequence nb. & 1 (blue) & 2 (red) & 3 (orange) \\ \hline
 $\sigma^2$ &  1421 & 1034 & 955.6  \\
-$\sigma$ &  37.67 & 32.16 & 30.91  \\
+% $\sigma$ &  37.67 & 32.16 & 30.91  \\
 $T$ & 6662 & 3282 & 1838
 \end{tabular}
 \caption{GMP $T=2000$}
@@ -130,22 +130,54 @@ $T$ & 6662 & 3282 & 1838
 \begin{tabular}{llll}
 sequence nb. & 1 (blue) & 2 (red) & 3 (orange) \\ \hline
 $\sigma^2$ &  285.1 & 274.6 & 258.8  \\
-$\sigma$ &  16.88 & 16.57 & 16.09  \\
+% $\sigma$ &  16.88 & 16.57 & 16.09  \\
 $T$ & 1136 & 1042 & 942
 \end{tabular}
 \caption{GMP $T=500$}
 \label{tab:gmp500}
 \end{table}
 
-Tables \ref{tab:gmp500} and \ref{tab:gmp2000} show the measured values for $\sigma$ and $T$.
-The values for the correlation length $T$ are off by up to a factor of 3. The reason for the deviation is unclear.
+Tables \ref{tab:gmp500} and \ref{tab:gmp2000} show the measured values for $\sigma^2$ and $T$.
+The theoretical values for $\sigma^2$ are $\sigma^2_{GM} = 1/(2\beta)$ with $q=1$ and $\beta=1/T$ which are in this case 1000 and 250 respectively.
+The variance $\sigma^2$ is estimated is quite close to the theoreticl value.
+However, the values for the correlation length $T$ are off by up to a factor of 3. The reason for the deviation is unclear.
 
 \subsection*{2.c}
-The correlation time $T$ characterizes best how close the signal is to white noise.
+The correlation time $T$ characterizes best the underlying process because it depends only on parameter $\beta$.
+It tells how close the signal is to white noise.
 The smaller $T$, the closer to white noise, the bigger $T$, the closer to a random walk.
+% The graphical approach gave better estimates for $\sigma^2$ than for $T$.
+% Therefore, the estimated $\sigma^2$ characterizes best the underlying process.
+% A $\sigma^2$ close to 1 indicates white noise, while a big $\sigma^2$ indicates a random walk.
 
 \subsection*{2.d}
 
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+sequence nb. & 1 & 2 & 3 \\ \hline
+$\sigma^2$ & 1.182931e+03 & 9.042480e+02 & 9.889570e+02 \\
+$\beta$ & 4.229967e-04 & 5.559729e-04 & 5.066038e-04 \\
+$T=1/\beta$ & 2364.1 & 1798.6 & 1973.9
+\end{tabular}
+\caption{GMP $T=2000$}
+\label{tab:fit_gmp2000}
+\end{table}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+sequence nb. & 1 & 2 & 3 \\ \hline
+$\sigma^2$ & 2.664254e+02 & 2.710082e+02 & 2.610238e+02 \\
+$\beta$ & 1.880129e-03 & 1.855449e-03 & 1.921333e-03 \\
+$T=1/\beta$ & 531.9 & 539.0 & 520.5
+\end{tabular}
+\caption{GMP $T=500$}
+\label{tab:fit_gmp500}
+\end{table}
+
+The GMWM estimates well the both parameters $T$ and $\sigma^2$ (maximal error is less than 20\%).
+The estimated correlation time $T$ via GMWM is much closer to the true value than the results from graphical estimation.
 
 \newpage
 \section*{Code}
