@@ -1,0 +1,4 @@
+timestamps navchip
+B: [10, 1873] s
+C: [2100, 3936] s
+A: [4055, 5650] s
