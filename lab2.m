@@ -25,31 +25,7 @@ plot_PSD(xsens_gyro, xsens_Ts, 'Xsens')
 %% plot autocorrelation
 plot_autocorr(xsens_gyro, xsens_Ts, 'Xsens')
 %% plot Allan deviation
-plot_allandev(xsens_gyro, xsens_Ts, 'Xsens')
-
-% %% plot PSD
-% figure
-% pwelch(xsens_gyro,[],[],[],1/xsens_Ts,'onesided');
-% title('Xsens Power-spectral-density (PSD)')
-% legend('x', 'z')
-% %% plot autocorrelation
-% figure
-% g = xsens_gyro - xsens_m;
-% [C, LAGS] = xcorr(g, 'unbiased');
-% plot(xsens_Ts.*LAGS, C(:,[1,4]))
-% xlabel('\tau [s]')
-% ylabel('\phi_{xx}(\tau)')
-% title('Xsens Autocorrelation (AC)')
-% legend('x', 'z')
-% %% plot Allan deviation
-% figure
-% loglog(allandev(xsens_gyro(:,1), '')); hold on; grid on
-% %loglog(allandev(xsens_gyro(:,2), ''))
-% loglog(allandev(xsens_gyro(:,3), ''))
-% title('Allan Deviation')
-% xlabel('\tau [s]')
-% ylabel('\sigma_y(\tau) [sec]')
-% legend('x', 'z')
+xsens_allan = plot_allandev(xsens_gyro, xsens_Ts, 'Xsens');
 
 %% Modeling
 
@@ -77,7 +53,7 @@ legend('x', 'z')
 
 figure
 g = model - bias;
-[C, LAGS] = xcorr(g, 'unbiased');
+[C, LAGS] = xcorr(g, 'coeff');
 plot(xsens_Ts.*LAGS, C(:,[1,4]))
 xlabel('\tau [s]')
 ylabel('\phi_{xx}(\tau)')
@@ -87,31 +63,65 @@ title('Xsens Model Autocorrelation (AC)')
 beta = [200, 200];
 w = sqrt((1-exp(-2*beta*Ts)).*sigma.^2).*randn(N,2);
 gm = GMP(w, Ts, beta);
-model2 = gm + bias + sinusoid;
+rw = cumsum(1e-6 * randn(N,2));
+%model2 = gm  + rw + bias + sinusoid;
+model2 = gm;
 
 % GM models better the slope in the PSD
 
-figure
-g = model2 - bias;
-[C, LAGS] = xcorr(g, 'unbiased');
-plot(xsens_Ts.*LAGS, C(:,[1,4]))
-xlabel('\tau [s]')
-ylabel('\phi_{xx}(\tau)')
-title('Xsens Model Autocorrelation (AC)')
-
-figure
-pwelch(model2,[],[],[],1/Ts,'onesided');
-title('Xsens Model Power-spectral-density (PSD)')
-legend('x', 'z')
+% figure
+% g = model2 - bias;
+% [C, LAGS] = xcorr(g, 'coeff');
+% plot(xsens_Ts.*LAGS, C(:,[1,4]))
+% xlabel('\tau [s]')
+% ylabel('\phi_{xx}(\tau)')
+% title('Xsens Model Autocorrelation (AC)')
+% 
+% figure
+% pwelch(model2,[],[],[],1/Ts,'onesided');
+% title('Xsens Model Power-spectral-density (PSD)')
+% legend('x', 'z')
 
 %% model Allan deviation
 figure
-loglog(allandev(model2(:,1), '')); hold on; grid on
-loglog(allandev(model2(:,2), ''))
-title('Allan Deviation')
+loglog(xsens_allan(:,1)); hold on; grid on
+m2_allan = allandev(model2(:,1), '');
+loglog(m2_allan)
+title('Xsens gyro x compare')
+%model2_allan = plot_allandev(m2, Ts, 'Model2');
+
+%% Model 3
+f_sin = 41.74; % [Hz]
+A_sin = [0.0013, 0.00015]; % amplitudes estimated by hand
+sinusoid = A_sin.*sin(2*pi*f_sin*xsens_t);
+bias = mean(xsens_gyro);
+sigma = std(xsens_gyro);
+N = length(xsens_gyro);
+Ts = xsens_Ts;
+
+beta = 2.499644e+02;
+%w = sqrt((1-exp(-2*beta*Ts)).*sigma.^2).*randn(N,2);
+w = sqrt(2.634400e-05) .*randn(N,1);
+gm = GMP(w, 1, beta);
+wn = sqrt(2.530546e-06) * randn(N, 1);
+rw = cumsum(sqrt(2.776097e-12) * randn(N,1));
+model3 = wn + rw + gm + bias(1) + sinusoid(:,1);
+
+figure
+g = model3 - bias(1);
+[C, LAGS] = xcorr(g, 'coeff');
+plot(xsens_Ts.*LAGS, C)
 xlabel('\tau [s]')
-ylabel('\sigma_y(\tau) [sec]')
+ylabel('\phi_{xx}(\tau)')
+title('Xsens Model3 Autocorrelation (AC)')
+
+figure
+pwelch(model3,[],[],[],1/Ts,'onesided');
+title('Xsens Model3 Power-spectral-density (PSD)')
 legend('x', 'z')
+
+%% model Allan deviation
+model3_allan = plot_allandev(model3, Ts, 'Model3');
 
 %% Export data
 dlmwrite('02_xsens.txt',xsens_gyro,'precision','%.8f')
@@ -147,6 +157,30 @@ figure
 plot_autocorr(ln200_gyro, ln200_Ts);
 title('LN200 Autocorrelation (AC)')
 
+%% LN200 Model
+f_sin = 41.74; % [Hz]
+A_sin = [0, 0]; % amplitudes estimated by hand
+sinusoid = A_sin.*sin(2*pi*f_sin*ln200_t);
+bias = mean(ln200_gyro);
+sigma = std(ln200_gyro);
+N = length(ln200_gyro);
+Ts = ln200_Ts;
+model = sigma .* randn(N, 2) + bias + sinusoid;
+
+
+beta = [200, 200];
+w = sqrt((1-exp(-2*beta*Ts)).*sigma.^2).*randn(N,2);
+gm = GMP(w, Ts, beta);
+model2 = gm + bias + sinusoid;
+
+% GM models better the slope in the PSD
+
+g = model2 - bias;
+plot_autocorr(g, ln200_Ts, 'LN200 Model')
+
+plot_PSD(g, ln200_Ts, 'LN200 Model')
+
+
 %% Export data
 dlmwrite('02_ln200.txt',ln200_gyro,'precision','%.8f')
 dlmwrite('02_ln200_model1.txt',model,'precision','%.8f')
@@ -181,7 +215,7 @@ end
 function [] = plot_autocorr(samples, Ts, name)
     figure
     s = samples - mean(samples);
-    [C, LAGS] = xcorr(s, 'unbiased');
+    [C, LAGS] = xcorr(s, 'coeff');
     plot(Ts.*LAGS, C(:,[1,4]))
     xlabel('\tau [s]')
     ylabel('\phi_{xx}(\tau)')
@@ -189,10 +223,13 @@ function [] = plot_autocorr(samples, Ts, name)
     legend('x', 'z')
 end
 
-function [] = plot_allandev(samples, Ts, name)
+function [adev] = plot_allandev(samples, Ts, name)
     figure
-    loglog(allandev(samples(:,1), '')); hold on; grid on
-    loglog(allandev(samples(:,2), ''))
+    adev(:,1) = allandev(samples(:,1), '');
+    loglog(adev(:,1));
+    hold on; grid on
+    adev(:,2) = allandev(samples(:,2), '');
+    loglog(adev(:,2));
     title(sprintf('%s Allan Deviation',name))
     xlabel('\tau [s]')
     ylabel('\sigma_y(\tau) [sec]')

@@ -25,6 +25,19 @@ plot_noise_characteristics(rw, 'Random Walk')
 plot_noise_characteristics(gm500, 'Gauss-Markov, T=500')
 plot_noise_characteristics(gm2000, 'Gauss-Markov, T=2000')
 
+%%
+beta = 1/0.1;
+sgm = 1;
+dt = 1/100;
+wn = sgm*randn(200000, 1);
+gm = GMP(wn, dt, beta);
+figure
+loglog(allandev(gm, ''));
+title(sprintf('Guss-Markov, Tc=%f, sgm=%f',1/beta,sgm))
+grid on;
+xlabel('\tau [s]')
+ylabel('\sigma_y(\tau) [sec]')
+
 %% functions
 function x = GMP(w, dt, beta)
     x = zeros(size(w));
@@ -45,9 +58,9 @@ function [] = plot_noise_characteristics(x, name)
 
     subplot(2,2,2);
     tau=-length(x)+1:length(x)-1;
-    plot(tau,xcorr(x(:,1), 'unbiased')); hold on
-    plot(tau,xcorr(x(:,2), 'unbiased'))
-    plot(tau,xcorr(x(:,3), 'unbiased'))
+    plot(tau,xcorr(x(:,1), 'coeff')); hold on
+    plot(tau,xcorr(x(:,2), 'coeff'))
+    plot(tau,xcorr(x(:,3), 'coeff'))
     title('Autocorrelation (AC)')
     xlabel('\tau [s]')
     ylabel('\phi_{xx}(\tau)')
