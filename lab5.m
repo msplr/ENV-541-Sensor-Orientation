@@ -1,10 +1,9 @@
 % generate reference trajectory
-w = pi/100;
-r = 500;
-% 100Hz
-f_int = 100;
-t_end = 200;
-dt = 1/f_int;
+w = pi/100; % [rad]
+r = 500; % [m]
+f_int = 100; % [Hz]
+t_end = 200; % [s]
+dt = 1/f_int; % [s]
 N = t_end*f_int + 1;
 
 a = (0:20000)'*pi/100*0.01 + pi/2;
@@ -12,12 +11,12 @@ v = (w*r*[cos(a) sin(a)]);
 p = (r*[sin(a) -cos(a)]);
 
 % sensor error flags
-gyro_err_random_bias = 0;
-gyro_err_gauss_markov = 0;
-gyro_err_white_noise = 0;
+gyro_err_random_bias = 1;
+gyro_err_gauss_markov = 1;
+gyro_err_white_noise = 1;
 
-acc_err_random_bias = 0;
-acc_err_white_noise = 0;
+acc_err_random_bias = 1;
+acc_err_white_noise = 1;
 
 rng(42);
 
@@ -47,36 +46,22 @@ acc_bc = acc_std_bias * randn(1,2) * acc_err_random_bias;
 
 f = [0, r*w0^2] + acc_bc + acc_wn;
 
-%% Error plots
+%% Simulate and plot
 set(groot,'DefaultAxesFontSize',17)
 set(groot,'DefaultLineLineWidth',2)
-
-% [atest, vtest, ptest] = trapezoidal_int(a(1), v(1,:)', p(1,:)', f, w, dt);
-% t = dt * (0:length(p)-1);
-% 
-% desc = make_description(gyro_err_random_bias, gyro_err_gauss_markov, gyro_err_white_noise, acc_err_random_bias, acc_err_white_noise);
-% 
-% plot_trajectory('traj', ptest)
-% plot_error(desc, atest-a, vtest-v, ptest-p, t)
-
-%%
 desc = make_description(gyro_err_random_bias, gyro_err_gauss_markov, gyro_err_white_noise, acc_err_random_bias, acc_err_white_noise);
 
-sim_and_plot(f, w, a, v, p, dt, desc)
-printpdf(gcf, strcat('05/',datestr(now, 'yyyymmdd-HHMMSS'),'.pdf'),1,1.3)
+[atest, vtest, ptest] = trapezoidal_int(a(1), v(1,:)', p(1,:)', f, w, dt);
+t = dt * (0:length(p)-1);
+plot_trajectory('Trajectory', ptest, p)
+plot_error(desc, atest-a, vtest-v, ptest-p, t)
 
 %% functions
-function [asim, vsim, psim] = sim_and_plot(f, w, a, v, p, dt, desc)
-    [atest, vtest, ptest] = trapezoidal_int(a(1), v(1,:)', p(1,:)', f, w, dt);
-    t = dt * (0:length(p)-1);
-    plot_trajectory('traj', ptest)
-    plot_error(desc, atest-a, vtest-v, ptest-p, t)
-end
-
 function [] = plot_error(desc, ea, ev, ep, t)
     fprintf('%s\n', desc)
-    fprintf('velocity error: x1 %.3e, x2 %.3e, abs %.3e\n', max(abs(ev(:,1))), max(abs(ev(:,2))), max(vecnorm(ev,2,2)))
-    fprintf('position error: x1 %.3e, x2 %.3e, abs %.3e\n', max(abs(ep(:,1))), max(abs(ep(:,2))), max(vecnorm(ep,2,2)))
+    fprintf('azimuth error: %.3e deg\n', max(abs(180/pi*ea)))
+    fprintf('velocity error: %.3e m/s\n', max(vecnorm(ev,2,2)))
+    fprintf('position error: %.3e m\n', max(vecnorm(ep,2,2)))
     figure
     subplot(3,1,1)
     plot(t, 180/pi*ea')
@@ -91,11 +76,13 @@ function [] = plot_error(desc, ea, ev, ep, t)
     suptitle(desc)
 end
 
-function [] = plot_trajectory(name, p)
+function [] = plot_trajectory(name, p, ref)
     figure
+    plot(ref(:,2), ref(:,1)); hold on;
     plot(p(:,2), p(:,1))
-    ylabel('[m]')
-    xlabel('[m]')
+    legend('reference', 'estimate')
+    ylabel('x1 [m]')
+    xlabel('x2 [m]')
     axis('equal')
     title(name)
 end

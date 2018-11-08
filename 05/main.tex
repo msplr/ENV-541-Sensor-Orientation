@@ -41,6 +41,9 @@
 \definecolor{mygreen}{RGB}{28,172,0} % color values Red, Green, Blue
 \definecolor{mylilas}{RGB}{170,55,241}
 
+\usepackage{siunitx}
+\newcommand{\e}[1]{\times 10^{#1}} % nicer scientific notation
+
 \title{ENV-541 Sensor Orientation\\Lab 5 - Inertial Navigation in 2D / Realistic Signal}
 \author{Michael Spieler}
 \date{November 2, 2018}
@@ -51,25 +54,72 @@
 
 \section*{Stochastic error values}
 
-
 \begin{table}[h]
 \centering
-\begin{tabular}{llll}
-Error type & Notation & Value & Note \\
+\begin{tabular}{lllll}
+Error type & Notation & Value & Units & Note \\
 \hline
-\textbf{Gyro} bias (random constant) & $b_G$ & $XXrad/s$ & $1\sigma$ \\
-\textbf{Gyro} correlation noise (1st order Gauss-Markov) & $\sigma_{G^{PSD}_{GM1}}$ & $XXrad/s/\sqrt{Hz}$ & PSD level \\
-& $1/\beta_G$ & $100s$ & correlation time \\
-\textbf{Gyro} random walk (white noise) & $\sigma_{G^{PSD}_{WN}}$  & $XXrad/s/sample$ & PSD level \\
+\textbf{Gyro} bias (random constant) & $b_G$ & $4.848\e{-5}$ & $\si{\radian/\second}$ & $1\sigma$ \\
+\textbf{Gyro} correlation noise (1st order Gauss-Markov) & $\sigma_{G^{PSD}_{GM1}}$ & $8.727\e{-5}$ & $\si{\radian/\second/\sqrt{\hertz}}$ & PSD level \\
+& $1/\beta_G$ & $100$ & $\si{\second}$ & correlation time \\
+\textbf{Gyro} random walk (white noise) & $\sigma_{G^{PSD}_{WN}}$  & $2.909\e{-4}$ & $\si{\radian/\second/sample}$ & PSD level \\
 % \hline
-\textbf{Accelerometer} bias (random constant) & $b_A$  & $XXm/s^2$ & $1\sigma$ \\
-\textbf{Accelerometer} noise (white)  & $\sigma_{G^{PSD}_{WN}}$  & $XXm/s^2/sample$ & PSD level
+\textbf{Accel} bias (random constant) & $b_A$  & $9.807 \e{-3}$ & $\si{\meter/\second^2}$ & $1\sigma$ \\
+\textbf{Accel} noise (white)  & $\sigma_{G^{PSD}_{WN}}$ & $4.904\e{-3}$ & $\si{\meter/\second^2/sample}$ & PSD level
 \end{tabular}
 \caption{Stochastic error values in SI units.}
 \label{tab:err_val}
 \end{table}
 
 \section*{Error plots}
+
+\subsection*{Individual error sources}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+Error  & Azimuth error & Velocity error & Position error \\
+\hline
+\textbf{Gyro} Const. random bias & $5.756\e{-1}$ deg & $1.580\e{-1} \si{m/s}$ & $1.007\e{+1} \si{m}$ \\
+\textbf{Gyro} 1st order Gauss-Markov & $\mathbf{8.724\e{-1}}$ deg & $3.409\e{-1} \si{m/s}$ & $1.739\e{+1} \si{m}$ \\
+\textbf{Gyro} White noise & $2.480\e{-2}$ deg & $9.535\e{-3} \si{m/s}$ & $1.290\e{+0} \si{m}$ \\
+\hline
+\textbf{Accel} Const. random bias & $2.328\e{-10}$ deg & $\mathbf{1.172\e{+0}} \si{m/s}$ & $\mathbf{1.172\e{+2}} \si{m}$ \\
+\textbf{Accel} White noise & $2.328\e{-10}$ deg & $1.337\e{-2} \si{m/s}$ & $1.509\e{+0} \si{m}$ 
+\end{tabular}
+\caption{Estimation errors from different error sources}
+\label{tab:err_result}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{fig/gyro_bc}
+        % \caption{}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{fig/gyro_gm}
+        % \caption{}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{fig/gyro_wn}
+        % \caption{}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{fig/gyro_all}
+        % \caption{}
+    \end{subfigure}
+    \caption{Trajectory errors from gyro noise}
+    \label{fig:error_gyro}
+\end{figure}
+
 \begin{figure}[H]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
@@ -83,37 +133,63 @@ Error type & Notation & Value & Note \\
         \includegraphics[width=\textwidth]{fig/accel_wn}
         \caption{}
     \end{subfigure}
-    \caption{Trajectory errors from accelerometer noise.}
-    \label{fig:error_accel_1}
+    ~
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{fig/accel_all}
+        \caption{}
+    \end{subfigure}
+    \caption{Trajectory errors from accelerometer noise}
+    \label{fig:error_accel}
 \end{figure}
+
+\subsection*{Combined error sources}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+Error  & Azimuth error & Velocity error & Position error \\
+\hline
+Gyro all & $1.452\e{+0}$ deg & $5.076\e{-1} \si{m/s}$ & $2.577\e{+1} \si{m}$ \\
+Accel all & $2.328\e{-10}$ deg & $1.179\e{+0} \si{m/s}$ & $1.182\e{+2} \si{m}$ \\
+Gyro + Accel & $1.452\e{+0}$ deg & $1.188\e{+0} \si{m/s}$ & $1.439\e{+2} \si{m}$
+\end{tabular}
+\caption{Estimation errors with combined error sources.}
+\label{tab:combined_err}
+\end{table}
 
 \begin{figure}[H]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{fig/gyro_bc}
-        \caption{}
+        \includegraphics[width=\textwidth]{fig/all}
+        \caption{Trajectory errors from all error sources.}
     \end{subfigure}
     ~
     \begin{subfigure}[t]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{fig/gyro_gm}
-        \caption{}
+        \includegraphics[width=\textwidth]{fig/traj_all}
+        \caption{Estimate versus reference trajectory.}
     \end{subfigure}
-    \caption{Trajectory errors from gyro noise}
-    \label{fig:error_gyro_1}
+    \caption{}
+    \label{fig:error_all}
 \end{figure}
 
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[t]{0.49\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{fig/gyro_wn}
-        \caption{}
-    \end{subfigure}
-    \caption{Trajectory errors at 100Hz sampling rate}
-    \label{fig:error_gyro_2}
-\end{figure}
+\section*{Questions}
+
+\paragraph{1) Which from the three error sources influences the \textit{least} the estimate of azimuth?}
+The white noise resulted in the lowest error in the presented realization.
+This is intuitive, since the noise mean is zero and integrating it for the azimuth
+estimation should result in a lower error in comparison to noise with non-zero mean.
+\\
+Note: The Accelerometer errors are not considered, since it has no influence on the azimuth estimation.
+
+\paragraph{2) Which error source influences the \textit{most} velocity estimation?}
+The Accelerometer constant random bias resulted in the hightst velocity estimation error.
+
+\paragraph{3) Which error source influences the \textit{most} position estimation?}
+The Accelerometer constant random bias resulted in the hightst position estimation error.
+This is intutive, since the acceleration is integrated twice for the position estimate, which means the position estimation error will not only grow but accelerate.
 
 % \newpage
 \section*{Code}
