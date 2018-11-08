@@ -1,0 +1,31 @@
+>> lab5
+Gyro error: None
+Accel error: None
+velocity error: x1 1.292e-07, x2 2.584e-07, abs 2.584e-07
+position error: x1 1.645e-05, x2 2.865e-05, abs 2.905e-05
+>> lab5
+Gyro error: Random Bias,
+Accel error: None
+velocity error: x1 1.580e-01, x2 1.437e-01, abs 1.580e-01
+position error: x1 5.466e+00, x2 1.007e+01, abs 1.007e+01
+>> lab5
+Gyro error: Gauss-Markov,
+Accel error: None
+velocity error: x1 3.357e-01, x2 1.626e-01, abs 3.409e-01
+position error: x1 1.387e+01, x2 1.072e+01, abs 1.739e+01
+>> lab5
+Gyro error: White Noise
+Accel error: None
+velocity error: x1 9.484e-03, x2 3.134e-03, abs 9.535e-03
+position error: x1 1.268e+00, x2 2.507e-01, abs 1.290e+00
+>> lab5
+Gyro error: None
+Accel error: Random Bias,
+velocity error: x1 1.041e+00, x2 9.553e-01, abs 1.172e+00
+position error: x1 9.095e+01, x2 8.194e+01, abs 1.172e+02
+>> lab5
+Gyro error: None
+Accel error: White Noise
+velocity error: x1 1.336e-02, x2 4.145e-03, abs 1.337e-02
+position error: x1 1.491e+00, x2 2.408e-01, abs 1.509e+00
+>> 
