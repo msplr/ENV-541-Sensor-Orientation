@@ -54,6 +54,7 @@
 
 \section*{Stochastic error values}
 
+Table \ref{tab:err_val} lists the parameters for the different stochastic error sources used in this lab.
 \begin{table}[h]
 \centering
 \begin{tabular}{lllll}
@@ -73,7 +74,12 @@ Error type & Notation & Value & Units & Note \\
 
 \section*{Error plots}
 
+The 2D strapdown inertial navigatin example along a circle was simulated with a 100Hz sample frequency.
+The trapezoidal integration method was used for the state estimation.
+
 \subsection*{Individual error sources}
+In a first step the experiment was performed for each error source individally.
+Maximal (absolute) estimation errors along the trajectory are summarized in table \ref{tab:err_result}.
 
 \begin{table}[h]
 \centering
@@ -90,6 +96,9 @@ Error  & Azimuth error & Velocity error & Position error \\
 \caption{Estimation errors from different error sources}
 \label{tab:err_result}
 \end{table}
+
+
+Figure \ref{fig:error_gyro} shows the estimation error evolution for each gyro error source as well as for all sources combined.
 
 \begin{figure}[H]
     \centering
@@ -120,6 +129,9 @@ Error  & Azimuth error & Velocity error & Position error \\
     \label{fig:error_gyro}
 \end{figure}
 
+Figure \ref{fig:error_accel} shows the estimation error evolution for the accelerometer
+error sources of constant random bias and white noise as well as both combined.
+
 \begin{figure}[H]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
@@ -144,6 +156,9 @@ Error  & Azimuth error & Velocity error & Position error \\
 \end{figure}
 
 \subsection*{Combined error sources}
+
+The estimation errors along the trajectory for the combined error sources are summarized in table \ref{tab:combined_err}.
+Figure \ref{fig:error_all} shows the estimation error evolution for all error sources enabled as well as the resulting trajectory estimate.
 
 \begin{table}[h]
 \centering
@@ -177,17 +192,17 @@ Gyro + Accel & $1.452\e{+0}$ deg & $1.188\e{+0} \si{m/s}$ & $1.439\e{+2} \si{m}$
 
 \section*{Questions}
 
-\paragraph{1) Which from the three error sources influences the \textit{least} the estimate of azimuth?}
+\subsubsection*{1) Which from the three error sources influences the \textit{least} the estimate of azimuth?}
 The white noise resulted in the lowest error in the presented realization.
 This is intuitive, since the noise mean is zero and integrating it for the azimuth
 estimation should result in a lower error in comparison to noise with non-zero mean.
 \\
 Note: The Accelerometer errors are not considered, since it has no influence on the azimuth estimation.
 
-\paragraph{2) Which error source influences the \textit{most} velocity estimation?}
+\subsubsection*{2) Which error source influences the \textit{most} velocity estimation?}
 The Accelerometer constant random bias resulted in the hightst velocity estimation error.
 
-\paragraph{3) Which error source influences the \textit{most} position estimation?}
+\subsubsection*{3) Which error source influences the \textit{most} position estimation?}
 The Accelerometer constant random bias resulted in the hightst position estimation error.
 This is intutive, since the acceleration is integrated twice for the position estimate, which means the position estimation error will not only grow but accelerate.
 
