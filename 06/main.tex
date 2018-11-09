@@ -1,0 +1,100 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{geometry}
+\geometry{
+    a4paper,
+    total={170mm,257mm},
+    left=20mm,
+    right=20mm,
+    top=20mm,
+}
+\usepackage{listings} % code listings
+\lstset{framextopmargin=0pt,frame=lines}
+\lstset{
+    language=Matlab,
+    basicstyle=\footnotesize\ttfamily,
+    breaklines=true,
+    tabsize=4,
+    keepspaces=true,
+    columns=flexible,
+    % backgroundcolor=\color[gray]{0.9},
+    frame=single,
+    breaklines=true,%
+    morekeywords={matlab2tikz},
+    keywordstyle=\color{blue},%
+    morekeywords=[2]{1}, keywordstyle=[2]{\color{black}},
+    identifierstyle=\color{black},%
+    stringstyle=\color{mylilas},
+    commentstyle=\color{mygreen},%
+    showstringspaces=false,%without this there will be a symbol in the places where there is a space
+    numbers=left,
+    numberstyle={\tiny \color{black}},% size of the numbers
+    numbersep=9pt, % this defines how far the numbers are from the text
+    emph=[1]{for,end,break},emphstyle=[1]\color{red}, %some words to emphasise
+    %emph=[2]{word1,word2}, emphstyle=[2]{style},
+}
+\usepackage{color} %red, green, blue, yellow, cyan, magenta, black, white
+\definecolor{mygreen}{RGB}{28,172,0} % color values Red, Green, Blue
+\definecolor{mylilas}{RGB}{170,55,241}
+
+\usepackage{siunitx}
+\newcommand{\e}[1]{\times 10^{#1}} % nicer scientific notation
+
+\title{ENV-541 Sensor Orientation\\Lab 6 - Coarse alignment of a high accuracy IMU}
+\author{Michael Spieler}
+\date{November 9, 2018}
+
+\begin{document}
+
+\maketitle
+
+\section*{I. Read XSEA navigation-grade IMU data}
+
+TODO: plot
+
+\section*{II. Gyroscope: Earth rotation}
+
+
+\subsubsection*{1. What are the differences you observe?}
+\subsubsection*{2. How could these differences be used for estimating the approximate accuracy
+of the gyroscopes? (If yes, specify the estimate.)}
+
+
+\section*{III. Accelerometer: gravity vector}
+
+
+\subsubsection*{4. What are the differences you observe?}
+\subsubsection*{5. How could the observed differences be used for estimating the approximate
+accuracy of your accelerometers? (If yes, specify the estimate).}
+
+
+\section*{IV. Accelerometer leveling}
+
+
+\subsubsection*{6. What is the value of roll in degrees and how does this correspond to the
+reference value (real-time solution noted during acquisition*)?}
+\subsubsection*{7. What is the value of pitch in degrees and how does this correspond to the
+reference value (real-time solution noted during acquisition*)?}
+
+
+\section*{V. Gyrocompassing}
+
+
+\subsubsection*{8. What is the value of yaw in degrees and how does this correspond to the
+reference value (real-time solution noted during acquisition*)?}
+\subsubsection*{9. Do you recommend calculating the coarse alignment from instantaneous
+observation (1 epoch) or do you suggest performing data averaging? Why?}
+\subsubsection*{10. Is it possible to determine IMU’s latitude from the ‘leveled’ gyroscopic signal?
+If yes, what is your estimate from these data, how it was obtained and how well
+it corresponds to the reference value (real-time solution noted during
+acquisition*)?}
+
+\newpage
+\section*{Code}
+\lstinputlisting{../lab6.m}
+
+\end{document}
