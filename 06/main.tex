@@ -68,12 +68,9 @@ The observed Earth rotation rate is $7.2905091\e{-5} \si{rad/s}$ which has $-1.6
 \subsubsection*{2. How could these differences be used for estimating the approximate accuracy
 of the gyroscopes? (If yes, specify the estimate.)}
 
-TODO
-% The overal accuracy of the individual gyroscopes can \textit{not} be determined from only the above difference.
-% This value only indicates sum of multiple errors.
-We can estimate the error by:
-% \begin{equation*}
-% \end{equation*}
+The overal accuracy of the individual gyroscopes can \textit{not} be determined from only the above difference.
+This difference can come from multiple error sources which do not say anything about the accuracy of the individual 1 axis gyroscope.
+The error can come from a constant bias, angular random walk, or misalignment of the axis.
 
 Under the hypothesis that the sensor is properly calibrated (temperature compensation, misalignment correction, non-linearity, etc)
 
@@ -88,7 +85,8 @@ The measured gravity was $9.8057706 \si{m/s^2}$ with a difference of $2.706\e{-4
 \subsubsection*{5. How could the observed differences be used for estimating the approximate
 accuracy of your accelerometers? (If yes, specify the estimate).}
 
-TODO
+The overal accuracy of the individual gyroscopes can \textit{not} be determined from only the above difference.
+With the same reasoning as for Question 2.
 
 \section*{IV. Accelerometer leveling}
 % roll -2.658 deg, pitch 2.465 deg
@@ -134,5 +132,25 @@ with the leveled gyroscope signal $\omega^{l'}_{ie} = \mathbf{R}^{l'}_b \omega^b
 \newpage
 \section*{Code}
 \lstinputlisting{../lab6.m}
+
+\subsection*{Output}
+\begin{lstlisting}[language=]
+>> lab6
+1109_1522_PostProBinaryDecoded.imu contains 416036 epochs
+Reading ... (data @ 200.00 Hz, sGr 0.000005 sAc 1.000000e-03) ... done in 0.4 sec.
+
+Sensor norm:
+gyro: 7.2905091e-05 rad/s, difference to w_ref -1.606e-08 rad/s
+accel: 9.8057706e+00 m/s^2, difference to g_EPFL 2.706e-04 m/s^2
+
+roll -2.658 deg, pitch 2.465 deg
+reference: roll -2.653 deg, pitch 2.464 deg
+
+yaw 42.256 deg
+reference yaw 41.978 deg
+
+latitude 46.609 deg
+reference latitude 46.521 deg
+\end{lstlisting}
 
 \end{document}

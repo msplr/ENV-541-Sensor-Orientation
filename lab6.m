@@ -33,9 +33,9 @@ gyro = mean(gyro,1)';
 gyro_norm = vecnorm(gyro);
 accel_norm = vecnorm(accel);
 
-fprintf('Sensor norm:\n');
+fprintf('\nSensor norm:\n');
 fprintf('gyro: %.7e rad/s, difference to w_ref %.3e rad/s\n', gyro_norm, gyro_norm-w_ref);
-fprintf('accel: %.7e m/s^2, difference to g_EPFL %.3e m/s^2\n', accel_norm, accel_norm-g_EPFL);
+fprintf('accel: %.7e m/s^2, difference to g_EPFL %.3e m/s^2\n\n', accel_norm, accel_norm-g_EPFL);
 
 %% Test (simulate sensor readings)
 if 0
@@ -51,19 +51,19 @@ if 0
 end
 
 %% Accelerometer leveling
-roll = atan(accel(2)/accel(3));
+roll = -atan2(accel(2),-accel(3));
 pitch = asin(accel(1)/accel_norm);
 fprintf('roll %.3f deg, pitch %.3f deg\n', roll*180/pi, pitch*180/pi);
-fprintf('reference: roll %.3f deg, pitch %.3f deg\n', roll_ref, pitch_ref);
+fprintf('reference: roll %.3f deg, pitch %.3f deg\n\n', roll_ref, pitch_ref);
 
 %% Gyrocompassing
 Rlb = R1(roll)*R2(pitch);
 Rbl = Rlb';
 wl = Rbl * gyro;
 
-yaw = atan(-wl(2)/wl(1));
+yaw = atan2(-wl(2),wl(1));
 fprintf('yaw %.3f deg\n', yaw*180/pi);
-fprintf('reference yaw %.3f deg\n', heading_ref);
+fprintf('reference yaw %.3f deg\n\n', heading_ref);
 
 latitude = asin(-wl(3)/gyro_norm);
 fprintf('latitude %.3f deg\n', latitude*180/pi);
