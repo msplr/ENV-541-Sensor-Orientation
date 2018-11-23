@@ -1,3 +1,4 @@
+close all
 % generate reference trajectory
 w = pi/100; % [rad]
 r = 25; % [m]
@@ -14,7 +15,6 @@ std_gps = [0.5 0.5]; % [m] GPS standard deviation
 z_gps = p + std_gps.*randn(N,2);
 
 fprintf('Empirical std dev GPS:%.4f\n', sqrt(sum(var(z_gps-p))))
-
 %% Kalman Filter
 Phi = [1 0 dt 0; ...
        0 1 0 dt; ...
@@ -44,12 +44,12 @@ for i = 1:N
 
    x_KF_pred(i,:) = xp';
    x_KF(i,:) = x';
-   pos_std_dev(i) = sqrt(Pp(1,1) + Pp(2,2)); % KF-predicted positioning quality
+   pos_std_dev(i) = sqrt(P(1,1) + P(2,2)); % KF-predicted positioning quality
    innovation(i,:) = z - H*xp;
 end
 
-fprintf('Empirical std dev KF filter:%.4f\n', sqrt(sum(var(xc(:,1:2)-p))))
-
+fprintf('Empirical std dev KF filter:%.4f\n', sqrt(sum(var(x_KF(:,1:2)-p))))
+fprintf('Final std dev KF predicted:%.4f\n', pos_std_dev(end))
 %% Plots
 set(groot,'DefaultAxesFontSize',17)
 set(groot,'DefaultLineLineWidth',2)
@@ -66,21 +66,7 @@ title('Innovation sequence')
 legend('innovation p_{north}', 'innovation p_{east}')
 xlabel('time [s]'); ylabel('\sigma^{KFp}_{xy} [m]')
 
-% figure;
-% plot(p(:,2), p(:,1))
-% hold on
-% plot(z_gps(:,2), z_gps(:,1))
-% axis equal
-
-% figure;
-% plot(p(:,2), p(:,1)); hold on;
-% plot(x_KF(:,2), x_KF(:,1))
-% plot(x_KF_pred(:,2), x_KF_pred(:,1))
-% plot(z_gps(:,2), z_gps(:,1), 'x')
-% title('Trajectory'); xlabel('x2 [m]'); ylabel('x1 [m]')
-% legend('true position', 'corrected position', 'predicted position', 'GPS measurement')
-% axis equal
-
+%plot_traj(p, x_KF, x_KF_pred, z_gps)
 %% functions
 function [x, P] = KF_predict(x,P,Phi,Q)
     x = Phi*x;
@@ -93,4 +79,13 @@ function [x, P] = KF_correct(x,P,z,H,R)
     P = (eye(4) - K*H)*P;
 end
 
-
+function [] = plot_traj(p, x_KF, x_KF_pred, z_gps)
+    figure;
+    plot(p(:,2), p(:,1)); hold on;
+    plot(x_KF(:,2), x_KF(:,1))
+    plot(x_KF_pred(:,2), x_KF_pred(:,1))
+    plot(z_gps(:,2), z_gps(:,1), 'x')
+    title('Trajectory'); xlabel('x2 [m]'); ylabel('x1 [m]')
+    legend('true position', 'corrected position', 'predicted position', 'GPS measurement')
+    axis equal
+end
