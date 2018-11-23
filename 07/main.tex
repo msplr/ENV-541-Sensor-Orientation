@@ -1,0 +1,73 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{geometry}
+\geometry{
+    a4paper,
+    total={170mm,257mm},
+    left=20mm,
+    right=20mm,
+    top=20mm,
+}
+\usepackage{listings} % code listings
+\lstset{framextopmargin=0pt,frame=lines}
+\lstset{
+    language=Matlab,
+    basicstyle=\footnotesize\ttfamily,
+    breaklines=true,
+    tabsize=4,
+    keepspaces=true,
+    columns=flexible,
+    % backgroundcolor=\color[gray]{0.9},
+    frame=single,
+    breaklines=true,%
+    morekeywords={matlab2tikz},
+    keywordstyle=\color{blue},%
+    morekeywords=[2]{1}, keywordstyle=[2]{\color{black}},
+    identifierstyle=\color{black},%
+    stringstyle=\color{mylilas},
+    commentstyle=\color{mygreen},%
+    showstringspaces=false,%without this there will be a symbol in the places where there is a space
+    numbers=left,
+    numberstyle={\tiny \color{black}},% size of the numbers
+    numbersep=9pt, % this defines how far the numbers are from the text
+    emph=[1]{for,end,break},emphstyle=[1]\color{red}, %some words to emphasise
+    %emph=[2]{word1,word2}, emphstyle=[2]{style},
+}
+\usepackage{color} %red, green, blue, yellow, cyan, magenta, black, white
+\definecolor{mygreen}{RGB}{28,172,0} % color values Red, Green, Blue
+\definecolor{mylilas}{RGB}{170,55,241}
+
+\usepackage{siunitx}
+\newcommand{\e}[1]{\times 10^{#1}} % nicer scientific notation
+
+\title{ENV-541 Sensor Orientation\\Lab 7 - Kalman Filtering with simulated GPS data: simple (a=0) model}
+\author{Michael Spieler}
+\date{November 9, 2018}
+
+\begin{document}
+
+\maketitle
+
+\section*{Questions}
+
+\subsubsection*{I. What is the true overall improvement of the positioning accuracy by the filtering
+(i.e. through comparing $\sigma_{xy}^{KF_{emp.}}$ versus $\sigma_{xy}^{GPS_{emp.}}$).}
+
+\subsubsection*{II. How many measurements does it take to stabilize the predicted accuracy in position?}
+
+\subsubsection*{III. Does the evolution of the predicted positioning accuracy depend on the actual measurements?
+If yes, why is that? If no, why is that?}
+
+\subsubsection*{IV. How well does the empirically estimated position accuracy ( $\sigma_{xy}^{KF_{emp.}}$)
+correspond to the anticipated/predicted accuracy ( $\sigma_{xy}^{KF_{emp.}}$ ) and which parameters
+of the filter would you suggest modifying to improve the agreement?}
+
+\newpage
+\section*{Code}
+\lstinputlisting{../lab7.m}
+
+\end{document}
