@@ -1,0 +1,86 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{geometry}
+\geometry{
+    a4paper,
+    total={170mm,257mm},
+    left=20mm,
+    right=20mm,
+    top=20mm,
+}
+\usepackage{listings} % code listings
+\lstset{framextopmargin=0pt,frame=lines}
+\lstset{
+    language=Matlab,
+    basicstyle=\footnotesize\ttfamily,
+    breaklines=true,
+    tabsize=4,
+    keepspaces=true,
+    columns=flexible,
+    % backgroundcolor=\color[gray]{0.9},
+    frame=single,
+    breaklines=true,%
+    morekeywords={matlab2tikz},
+    keywordstyle=\color{blue},%
+    morekeywords=[2]{1}, keywordstyle=[2]{\color{black}},
+    identifierstyle=\color{black},%
+    stringstyle=\color{mylilas},
+    commentstyle=\color{mygreen},%
+    showstringspaces=false,%without this there will be a symbol in the places where there is a space
+    numbers=left,
+    numberstyle={\tiny \color{black}},% size of the numbers
+    numbersep=9pt, % this defines how far the numbers are from the text
+    emph=[1]{for,end,break},emphstyle=[1]\color{red}, %some words to emphasise
+    %emph=[2]{word1,word2}, emphstyle=[2]{style},
+}
+\usepackage{color} %red, green, blue, yellow, cyan, magenta, black, white
+\definecolor{mygreen}{RGB}{28,172,0} % color values Red, Green, Blue
+\definecolor{mylilas}{RGB}{170,55,241}
+
+\usepackage{siunitx}
+\newcommand{\e}[1]{\times 10^{#1}} % nicer scientific notation
+
+\title{ENV-541 Sensor Orientation\\Lab 8 - Kalman Filtering with simulated GPS data: constant acceleration (a = const.) model}
+\author{Michael Spieler}
+\date{November 23, 2018}
+
+\begin{document}
+
+\maketitle
+
+\section*{Plots}
+
+\section*{Questions}
+
+
+\subsubsection*{I. Is the overall improvement of the \textit{positioning accuracy} via KF filtering better with
+respect to the model of constant velocity (i.e. plot/compare $\sigma_{xy}^{KF_{emp.}}$ versus $\sigma_{xy}^{GPS_{emp.}}$)?
+If yes/no – what do you think is the reason?}
+
+\subsubsection*{II. Is the \textit{anticipated accuracy} ($\sigma_{xy}^{KF_{p}}$) different from that of the model of constant
+velocity? Provide a justification.}
+
+\subsubsection*{III. How does the \textit{distribution of velocity errors} ($v^{true} – v^{KF}$) compare to that obtained
+with the constant velocity model? Can you identify and explain a pattern in these
+differences for the model of constant acceleration?}
+
+\subsubsection*{IV. Do the plotted histograms of innovations look like a normal distribution (visually)?
+If yes/no, which case (from A or B in Task 4.4) is closer to normality and why?}
+
+\subsubsection*{V. Do you observe statistically significant changes for the position or velocity
+empirical or anticipated accuracies when using \textit{faster prediction} (i.e. $dt_{KF}=0.1s$ vs.
+$dt_{KF}=1s$)? \textit{Justify} your answer by reasoning.}
+
+\subsubsection*{VI. Observe what happens when you first increase and then decrease the given value of
+the system noise level ($\sigma_{\dot a}$) 10 times. How do you interpret the observed changes
+in the filtered positions, velocities and the distribution of innovation, respectively?}
+
+\newpage
+\section*{Code}
+\lstinputlisting{../lab8.m}
+
+\end{document}
