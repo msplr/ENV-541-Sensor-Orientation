@@ -1,72 +1,94 @@
-close all
-% generate reference trajectory
+%close all
 w = pi/100; % [rad]
 r = 25; % [m]
 t_end = 200; % [s]
-dt = 2; % [s]
-N = round(t_end/dt + 1);
 
-t = (0:N-1)'*dt;
-a = t*w + pi/2;
-v = (w*r*[cos(a) sin(a)]);
-p = (r*[sin(a) -cos(a)]);
+dt = 0.1; % [s]
+t_KF = (dt:dt:t_end)';
+%%
+% reference trajectory
+a_ref = @(t) t*w + pi/2;
+v_ref = @(t) (w*r*[cos(a_ref(t)) sin(a_ref(t))]);
+p_ref = @(t) (r*[sin(a_ref(t)) -cos(a_ref(t))]);
 
+dt_gps = 1; % [s]
+t_gps = (dt_gps:dt_gps:t_end)';
 std_gps = [0.5 0.5]; % [m] GPS standard deviation
-z_gps = p + std_gps.*randn(N,2);
+z_gps = p_ref(t_gps) + std_gps.*randn(length(t_gps),2);
 
-fprintf('Empirical std dev GPS:%.4f\n', sqrt(sum(var(z_gps-p))))
+fprintf('Empirical std dev GPS:%.4f\n', sqrt(sum(var(z_gps-p_ref(t_gps)))))
 %% Kalman Filter
-Phi = [1 0 dt 0; ...
-       0 1 0 dt; ...
-       0 0 1 0; ...
-       0 0 0 1];
-H = [eye(2), zeros(2)];
-qvn = 0.05^2; % [(m^2/s^4/Hz]
-qve = 0.05^2; % [(m^2/s^4/Hz]
-Q = [1/3*dt^3*qvn  0 1/2*dt^2*qvn 0; ...
-     0 1/3*dt^3*qve  0 1/2*dt^2*qve; ...
-     1/2*dt^2*qvn  0 dt*qvn 0; ...
-     0 1/2*dt^2*qve  0 dt*qve];
+model = 'v=const';
+
+if model == 'a=const'
+    F = diag([1,1,1,1],2);
+    G = [zeros(4,2); eye(2)];
+    H = [eye(2), zeros(2,4)];
+    f0 = [-r*w^2 0];
+    x0 = [p_ref(0) v_ref(0) f0]';
+    P0 = diag([10^2 10^2 0.1^2 0.1^2 0.1^2 0.1^2]);
+    W = diag([0.01^2 0.01^2]); % [(m/s^3/sqrt(Hz)]^2
+elseif model == 'v=const'
+    F = diag([1,1],2);
+    G = [zeros(2); eye(2)];
+    H = [eye(2), zeros(2)];
+    x0 = [p_ref(0) v_ref(0)]';
+    P0 = diag([10^2 10^2 0.1^2 0.1^2]);
+    W = diag([0.05^2, 0.05^2]); % [(m/s^2/sqrt(Hz)]^2
+else
+    fprintf('ERROR: unknown model\n')
+    return
+end
 R = diag(std_gps.^2);
+[Phi, Qk] = KF_Phi_and_Qk(F, G, W, dt);
 
 % vectors tracking evolution
-x_KF_pred = zeros(N,4);
-x_KF = zeros(N,4);
-pos_std_dev = zeros(N,1);
-innovation = zeros(N,2);
+nx = length(Phi);
+x_KF_pred = zeros(length(t_KF),nx);
+x_KF = zeros(length(t_KF),nx);
+sigma_KFp = zeros(length(t_KF),1);
+innovation = zeros(length(t_gps),2);
 
-x = [p(1,:) v(1,:)]'; % x = [px py vx vy]'
-P = diag([10^2 10^2 0.1^2 0.1^2]);
-for i = 1:N
-   [xp, Pp] = KF_predict(x,P,Phi,Q);
-   z = z_gps(i,:)';
-   [x, P] = KF_correct(xp,Pp,z,H,R);
-
-   x_KF_pred(i,:) = xp';
-   x_KF(i,:) = x';
-   pos_std_dev(i) = sqrt(P(1,1) + P(2,2)); % KF-predicted positioning quality
-   innovation(i,:) = z - H*xp;
+x = x0;
+P = P0;
+i_gps = 1;
+for i = 1:length(t_KF)
+    [xp, Pp] = KF_predict(x,P,Phi,Qk);
+    if t_KF(i) >= t_gps(i_gps)
+        z = z_gps(i_gps,:)';
+        [x, P] = KF_correct(xp,Pp,z,H,R);
+        innovation(i_gps,:) = z - H*xp;
+        i_gps = i_gps + 1;
+    else
+        x = xp;
+        P = Pp;
+    end
+    x_KF_pred(i,:) = xp';
+    x_KF(i,:) = x';
+    sigma_KFp(i) = sqrt(P(1,1) + P(2,2)); % KF-predicted positioning quality
 end
 
-fprintf('Empirical std dev KF filter:%.4f\n', sqrt(sum(var(x_KF(:,1:2)-p))))
-fprintf('Final std dev KF predicted:%.4f\n', pos_std_dev(end))
+fprintf('Empirical std dev KF filter:%.4f\n', sqrt(sum(var(x_KF(:,1:2)-p_ref(t_KF)))))
+fprintf('Final std dev KF predicted:%.4f\n', sigma_KFp(end))
+
+plot_traj(p_ref(t_KF), x_KF, x_KF_pred, z_gps)
+
 %% Plots
 set(groot,'DefaultAxesFontSize',17)
 set(groot,'DefaultLineLineWidth',2)
 
 figure
-plot(t, pos_std_dev)
+plot(t_KF, sigma_KFp)
 title('KF-predicted positioning quality')
 xlabel('time [s]'); ylabel('\sigma^{KFp}_{xy} [m]')
 
-figure
-plot(t, innovation(:,1)); hold on
-plot(t, innovation(:,2))
-title('Innovation sequence')
-legend('innovation p_{north}', 'innovation p_{east}')
-xlabel('time [s]'); ylabel('\sigma^{KFp}_{xy} [m]')
+t_stable_P = 20; % [s]
+plot_signal_and_hist(innovation, t_gps, 'All innovations', 'innovation y [m]', 'y_{north}', 'y_{east}')
+plot_signal_and_hist(innovation(t_gps>t_stable_P,:), t_gps(t_gps>t_stable_P), ...
+    'Innovations stable gain', 'innovation y [m]', 'y_{north}', 'y_{east}')
+%%
+plot_signal_and_hist(x_KF(:,3:4), t_KF, 'Velocity error', '[m/s]', 'v_{err} (north)', 'v_{err} (east)')
 
-%plot_traj(p, x_KF, x_KF_pred, z_gps)
 %% functions
 function [x, P] = KF_predict(x,P,Phi,Q)
     x = Phi*x;
@@ -76,7 +98,43 @@ end
 function [x, P] = KF_correct(x,P,z,H,R)
     K = P*H'*(H*P*H' + R)^-1;
     x = x + K*(z - H*x);
-    P = (eye(4) - K*H)*P;
+    P = (eye(size(P)) - K*H)*P;
+end
+
+function [Phi, Qk] = KF_Phi_and_Qk(F, G, W, dt)
+    n = length(F);
+    A = [-F, G*W*G'; ...
+              zeros(n,n), F'];
+    B = expm(dt*A);
+    Phi = B(n+1:end,n+1:end)';
+    Qk = Phi*B(1:n,n+1:end);
+end
+
+function [] = plot_signal_and_hist(innovation, t, name, yl, l1, l2)
+    figure
+    ax1 = subplot(1,2,1);
+    plot(t, innovation(:,1)); hold on
+    plot(t, innovation(:,2))
+    legend(l1, l2)
+    xlabel('time [s]'); ylabel(yl)
+    set(gca,'XLim',[t(1) t(end)])
+    title(name)
+    ax2 = subplot(1,2,2);
+    edges=linspace(min(min(innovation)), max(max(innovation)), 10);
+    histogram(innovation(:,1), edges,'Orientation', 'horizontal'); hold on
+    histogram(innovation(:,2), edges,'Orientation', 'horizontal')
+    xlabel('counts')
+    % same y axis
+    set(ax2,'ytick',[])
+    ylim = get([ax1, ax2], {'YLim'}); ylim = cat(2, ylim{:});
+    set([ax1, ax2], 'Ylim', [min(ylim), max(ylim)])
+    % adjust subplot ratio
+    p1 = get(ax1, 'Position');
+    p2 = get(ax2, 'Position');
+    gap = p2(1)-p1(1)-p1(3);
+    dx = 0.5*p1(3);
+    set(ax1, 'Position', [p1(1:2), p1(3)+dx+0.5*gap, p1(4)])
+    set(ax2, 'Position', [p2(1)+dx, p2(2), p1(3)-dx, p1(4)])
 end
 
 function [] = plot_traj(p, x_KF, x_KF_pred, z_gps)
@@ -88,4 +146,20 @@ function [] = plot_traj(p, x_KF, x_KF_pred, z_gps)
     title('Trajectory'); xlabel('x2 [m]'); ylabel('x1 [m]')
     legend('true position', 'corrected position', 'predicted position', 'GPS measurement')
     axis equal
+end
+
+function printpdf(h,outfilename,xscale,yscale)
+    if nargin < 4
+        yscale = 1;
+    end
+    if nargin < 3
+        xscale = 1;
+    end
+    set(h, 'PaperUnits','centimeters');
+    set(h, 'Units','centimeters');
+    pos=get(h,'Position');
+    set(h, 'PaperSize', [xscale*pos(3) yscale*pos(4)]);
+    set(h, 'PaperPositionMode', 'manual');
+    set(h, 'PaperPosition',[0 0 xscale*pos(3) yscale*pos(4)]);
+    print(outfilename, '-dpdf');
 end

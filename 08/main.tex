@@ -71,6 +71,13 @@ differences for the model of constant acceleration?}
 \subsubsection*{IV. Do the plotted histograms of innovations look like a normal distribution (visually)?
 If yes/no, which case (from A or B in Task 4.4) is closer to normality and why?}
 
+They look both normally distributed, with B a bit closer to normality (more symmetric).
+The constant acceleration model fits well the test trajectory, since the acceleration in the map frame is only changing slowly.
+Therefore the position prediction noise is directly coming from the GPS gaussian noise.
+
+Case B is better because when the gain is stabilized the covariance is lower than than at start (high initial uncertainty).
+This caused the filter to give less weight to the prediciton from the motion model.
+
 \subsubsection*{V. Do you observe statistically significant changes for the position or velocity
 empirical or anticipated accuracies when using \textit{faster prediction} (i.e. $dt_{KF}=0.1s$ vs.
 $dt_{KF}=1s$)? \textit{Justify} your answer by reasoning.}
