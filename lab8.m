@@ -1,40 +1,40 @@
-%close all
+close all
 w = pi/100; % [rad]
 r = 25; % [m]
-t_end = 200; % [s]
+t_end = round(2*pi/w); % [s]
+dt = 1; % [s] Kalman filter update time
+t_KF = (dt:dt:t_end)'; % [s] timestamp of KF updates
 
-dt = 0.1; % [s]
-t_KF = (dt:dt:t_end)';
-%%
 % reference trajectory
 a_ref = @(t) t*w + pi/2;
 v_ref = @(t) (w*r*[cos(a_ref(t)) sin(a_ref(t))]);
 p_ref = @(t) (r*[sin(a_ref(t)) -cos(a_ref(t))]);
 
+%% Measurements
 dt_gps = 1; % [s]
-t_gps = (dt_gps:dt_gps:t_end)';
+t_gps = (dt_gps:dt_gps:t_end)'; % [s] timestamp of GPS measurements
 std_gps = [0.5 0.5]; % [m] GPS standard deviation
 z_gps = p_ref(t_gps) + std_gps.*randn(length(t_gps),2);
 
 fprintf('Empirical std dev GPS:%.4f\n', sqrt(sum(var(z_gps-p_ref(t_gps)))))
 %% Kalman Filter
-model = 'v=const';
+model = 'a=const';
 
 if model == 'a=const'
     F = diag([1,1,1,1],2);
     G = [zeros(4,2); eye(2)];
     H = [eye(2), zeros(2,4)];
+    W = diag([0.01^2 0.01^2]); % [(m/s^3/sqrt(Hz)]^2
     f0 = [-r*w^2 0];
     x0 = [p_ref(0) v_ref(0) f0]';
     P0 = diag([10^2 10^2 0.1^2 0.1^2 0.1^2 0.1^2]);
-    W = diag([0.01^2 0.01^2]); % [(m/s^3/sqrt(Hz)]^2
 elseif model == 'v=const'
     F = diag([1,1],2);
     G = [zeros(2); eye(2)];
     H = [eye(2), zeros(2)];
+    W = diag([0.05^2, 0.05^2]); % [(m/s^2/sqrt(Hz)]^2
     x0 = [p_ref(0) v_ref(0)]';
     P0 = diag([10^2 10^2 0.1^2 0.1^2]);
-    W = diag([0.05^2, 0.05^2]); % [(m/s^2/sqrt(Hz)]^2
 else
     fprintf('ERROR: unknown model\n')
     return
@@ -71,23 +71,29 @@ end
 fprintf('Empirical std dev KF filter:%.4f\n', sqrt(sum(var(x_KF(:,1:2)-p_ref(t_KF)))))
 fprintf('Final std dev KF predicted:%.4f\n', sigma_KFp(end))
 
-plot_traj(p_ref(t_KF), x_KF, x_KF_pred, z_gps)
-
 %% Plots
 set(groot,'DefaultAxesFontSize',17)
 set(groot,'DefaultLineLineWidth',2)
+
+plot_traj(p_ref(t_KF), x_KF, x_KF_pred, z_gps)
 
 figure
 plot(t_KF, sigma_KFp)
 title('KF-predicted positioning quality')
 xlabel('time [s]'); ylabel('\sigma^{KFp}_{xy} [m]')
 
-t_stable_P = 20; % [s]
+t_stable_P = 25; % [s]
 plot_signal_and_hist(innovation, t_gps, 'All innovations', 'innovation y [m]', 'y_{north}', 'y_{east}')
 plot_signal_and_hist(innovation(t_gps>t_stable_P,:), t_gps(t_gps>t_stable_P), ...
     'Innovations stable gain', 'innovation y [m]', 'y_{north}', 'y_{east}')
-%%
-plot_signal_and_hist(x_KF(:,3:4), t_KF, 'Velocity error', '[m/s]', 'v_{err} (north)', 'v_{err} (east)')
+plot_signal_and_hist(x_KF(:,3:4)-v_ref(t_KF), t_KF, 'Velocity error', '[m/s]', 'v_{err} (north)', 'v_{err} (east)')
+
+%% save plots
+%saveplot(figure(1), '08/traj.pdf')
+saveplot(figure(2), '08/sigma_KFp.pdf')
+saveplot(figure(3), '08/innovation_all.pdf', 2, 1)
+saveplot(figure(4), '08/innovation_stable.pdf', 2, 1)
+saveplot(figure(5), '08/velocity_error.pdf', 2, 1)
 
 %% functions
 function [x, P] = KF_predict(x,P,Phi,Q)
@@ -148,7 +154,7 @@ function [] = plot_traj(p, x_KF, x_KF_pred, z_gps)
     axis equal
 end
 
-function printpdf(h,outfilename,xscale,yscale)
+function saveplot(h,outfilename,xscale,yscale)
     if nargin < 4
         yscale = 1;
     end
