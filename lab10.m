@@ -1,7 +1,8 @@
 % Lab 10
 % author: Michael Spieler
 
-ERROR_FEEDBACK = false;
+ERROR_FEEDBACK = true;
+%ERROR_FEEDBACK = false;
 rng(1234);
 
 w0 = pi/100; % [rad]
@@ -73,8 +74,11 @@ W = diag([gyro_std_wn^2, acc_std_wn^2, acc_std_wn^2, 2*gyro_std_GM^2*gyro_beta_G
 R = diag([GPS_std_wn, GPS_std_wn].^2);
 H = zeros(2,9); H(1,4) = 1; H(2,5) = 1;
 
-x1_hist = zeros(length(t),5);
-dz_hist = zeros(length(t_GPS),2);
+x1_log = zeros(length(t),5);
+x1_KF_log = zeros(length(t_GPS),5);
+dz_log = zeros(length(t_GPS),2);
+dx_log = zeros(length(t),9);
+P_log = zeros(length(t),length(dx),length(dx));
 i_GPS = 1;
 % simulate KF
 for i = 1:length(t)
@@ -83,8 +87,9 @@ for i = 1:length(t)
 
     if ERROR_FEEDBACK
         e = e + dx(6:end);
-        z_gyro(i) = z_gyro(i) + e(1) + e(2);
-        z_accel(i,:) = z_accel(i,:) + e(3:4)';
+        dx(6:end) = 0;
+        z_gyro(i) = z_gyro(i) - e(1) - e(2);
+        z_accel(i,:) = z_accel(i,:) - e(3:4)';
     end
 
     % motion model using strapdown INS
@@ -97,28 +102,43 @@ for i = 1:length(t)
     % prediction step
     dx = Phi*dx;
     P = Phi*P*Phi' + Q;
-
     if t(i) >= t_GPS(i_GPS)
         % correction step
         dz = GPS(i_GPS,:)' - x1(4:end);
         K = P*H'*(H*P*H' + R)^-1;
         dx = dx + K*(dz - H*dx);
 
-        P = (eye(length(dx)) - K*H)*P;
+        I = eye(length(dx));
+        P = (I - K*H)*P;
 
-        x1 = x1 + dx(1:5);
-        dx(1:5) = 0;
+        x1_KF_log(i_GPS,:) = x1 + dx(1:5);
+        %x1 = x1 + dx(1:5);
+        %dx(1:5) = 0;
 
         i_GPS = i_GPS + 1;
     end
-    x1_hist(i,:) = x1';
+    
+    dx_log(i,:) = dx;
+
+    x1 = x1 + dx(1:5);
+    dx(1:5) = 0;
+
+    P_log(i,:,:) = P;
+    x1_log(i,:) = x1';
 end
+
+fprintf('Empirical std dev GPS: %.4f m\n', sqrt(sum(var(GPS-p_ref(t_GPS)))))
+fprintf('Empirical std dev KF filter: %.4f m\n', sqrt(sum(var(x1_log(:,1:2)-p_ref(t)))))
+fprintf('Empirical std dev KF filter: %.4f m\n', sqrt(sum(var(x1_KF_log(:,1:2)-p_ref(t_GPS)))))
 
 %%
 set(groot,'DefaultAxesFontSize',17)
 set(groot,'DefaultLineLineWidth',2)
 
-plot_traj(p_ref(t), x1_hist(:,4:5), zeros(2,2), GPS);
+%plot_pos_and_heading(x1_log, t, P_log);
+plot_traj(p_ref(t), x1_log(:,4:5), GPS);
+figure; plot(dx_log(:,1:5)); legend('da','dv1','dv2','dp1','dp2')
+figure; plot(dx_log(:,6:9)); legend('bc','bg','ba1','ba2')
 %% functions
 function x = strapdown_INS(x, gyro, accel, i, dt)
     a_ = x(1); v_ = x(2:3); p_ = x(4:5);
@@ -156,13 +176,45 @@ function x = GaussMarkov_1st_order(w, dt, beta)
     end
 end
 
-function [] = plot_traj(p, x_KF, x_KF_pred, z_gps)
+function [] = plot_traj(p, x_KF, z_gps)
     figure;
     plot(p(:,2), p(:,1)); hold on;
     plot(x_KF(:,2), x_KF(:,1))
-    plot(x_KF_pred(:,2), x_KF_pred(:,1))
     plot(z_gps(:,2), z_gps(:,1), 'x')
     title('Trajectory'); xlabel('x2 [m]'); ylabel('x1 [m]')
-    legend('true position', 'corrected position', 'predicted position', 'GPS measurement')
+    legend('true position', 'estimated position', 'GPS measurement')
     axis equal
+end
+
+function [] = plot_signal_with_std(t, y, std)
+    yl = y - std;
+    yu = y + std;
+    fill([t; flipud(t)], [yu; flipud(yl)], [.9 .9 .9], 'linestyle', 'none')
+    hold on;
+    plot(t,y);
+end
+
+function [] = plot_pos_and_heading(x, t, P)
+    figure;
+    subplot(3,1,1)
+    plot_signal_with_std(t, 180/pi*x(:,1), sqrt(P(:,1,1)))
+%    plot(t,180/pi*x(:,1)); hold on;
+%    plot(t,180/pi*(x(:,1)+sqrt(P(:,1,1))));
+%    plot(t,180/pi*(x(:,1)-sqrt(P(:,1,1))));
+    subplot(3,1,2)
+    plot_signal_with_std(t, x(:,2), sqrt(P(:,2,2)));
+    plot_signal_with_std(t, x(:,3), sqrt(P(:,3,3)));
+    % plot(t,x(:,2)); hold on;
+    % plot(t,x(:,2)+sqrt(P(:,2,2)));
+    % plot(t,x(:,2)-sqrt(P(:,2,2)));
+    % plot(t,x(:,3))
+    % plot(t,x(:,3)+sqrt(P(:,3,3)));
+    % plot(t,x(:,3)-sqrt(P(:,3,3)));
+    subplot(3,1,3)
+    plot(t,x(:,4)); hold on;
+    plot(t,x(:,4)+sqrt(P(:,4,4)));
+    plot(t,x(:,4)-sqrt(P(:,4,4)));
+    plot(t,x(:,5))
+    plot(t,x(:,5)+sqrt(P(:,5,5)));
+    plot(t,x(:,5)-sqrt(P(:,5,5)));
 end
